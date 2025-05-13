@@ -273,6 +273,313 @@ dbl (3): gdp_per_cap, life_exp, pop
 </div>
 </div>
 </section>
+<section id="question-2-population-statistics-for-singapore" class="level2">
+<h2 class="anchored" data-anchor-id="question-2-population-statistics-for-singapore">Question 2 Population Statistics for Singapore</h2>
+<p>In this section we’ll extract five-year age cohorts from the “T4” sheet of <code>outputFile.xlsx</code>, infer the size of the oldest cohort, and verify the result against <code>sg_5yr_cohorts.csv</code>.</p>
+</section>
+<section id="import-data-1" class="level2">
+<h2 class="anchored" data-anchor-id="import-data-1">2.1 Import Data</h2>
+<p>Read the “T4” sheet of the Excel file, skipping the first 10 rows of the sheet.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)  <span class="co"># loads dplyr, tidyr, stringr, readr, etc.</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(waldo)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Read T4, skipping the first 10 rows of metadata</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>t4 <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(<span class="st">"data/outputFile.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"T4"</span>, <span class="at">skip =</span> <span class="dv">10</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(t4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 69
+  `Data Series`   `2024` `2023` `2022` `2021` `2020` `2019` `2018` `2017` `2016`
+  &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 Total Residents 4.18e6 4.15e6 4.07e6 3.99e6 4.04e6 4.03e6 3.99e6 3.97e6 3.93e6
+2 0 - 4 Years     1.70e5 1.75e5 1.78e5 1.78e5 1.83e5 1.85e5 1.86e5 1.88e5 1.87e5
+3 5 - 9 Years     2.02e5 2.02e5 2.01e5 1.99e5 1.99e5 1.98e5 1.99e5 2.01e5 2.02e5
+4 10 - 14 Years   2.04e5 2.04e5 2.02e5 2.00e5 2.06e5 2.08e5 2.07e5 2.06e5 2.07e5
+5 15 - 19 Years   2.11e5 2.10e5 2.07e5 2.05e5 2.15e5 2.22e5 2.27e5 2.33e5 2.40e5
+6 20 - 24 Years   2.25e5 2.29e5 2.33e5 2.38e5 2.45e5 2.49e5 2.56e5 2.59e5 2.61e5
+# ℹ 59 more variables: `2015` &lt;dbl&gt;, `2014` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2012` &lt;dbl&gt;,
+#   `2011` &lt;dbl&gt;, `2010` &lt;dbl&gt;, `2009` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2007` &lt;dbl&gt;,
+#   `2006` &lt;dbl&gt;, `2005` &lt;dbl&gt;, `2004` &lt;dbl&gt;, `2003` &lt;dbl&gt;, `2002` &lt;dbl&gt;,
+#   `2001` &lt;dbl&gt;, `2000` &lt;dbl&gt;, `1999` &lt;chr&gt;, `1998` &lt;chr&gt;, `1997` &lt;chr&gt;,
+#   `1996` &lt;chr&gt;, `1995` &lt;chr&gt;, `1994` &lt;chr&gt;, `1993` &lt;chr&gt;, `1992` &lt;chr&gt;,
+#   `1991` &lt;chr&gt;, `1990` &lt;chr&gt;, `1989` &lt;chr&gt;, `1988` &lt;chr&gt;, `1987` &lt;chr&gt;,
+#   `1986` &lt;chr&gt;, `1985` &lt;chr&gt;, `1984` &lt;chr&gt;, `1983` &lt;chr&gt;, `1982` &lt;chr&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="extract-the-relevant-rows" class="level2">
+<h2 class="anchored" data-anchor-id="extract-the-relevant-rows">2.2 Extract the relevant rows</h2>
+<p>Select rows 37–86 of the original sheet (tibble rows 27–76).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the rows 37–86 of the original sheet (tibble rows 27–76)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>sg_raw <span class="ot">&lt;-</span> t4 <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">27</span><span class="sc">:</span><span class="dv">76</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sg_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 69
+  `Data Series` `2024` `2023` `2022` `2021` `2020` `2019` `2018` `2017` `2016`
+  &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0 - 4 Years    87373  89629  90906  91043  93388  94666  94916  96041  95678
+2 5 - 9 Years   103289 103249 103270 101980 101729 101051 101636 102010 102426
+3 10 - 14 Years 104252 104335 103066 102112 104967 105661 105026 104885 105589
+4 15 - 19 Years 107262 106461 105521 104927 109868 113555 116102 119500 122911
+5 20 - 24 Years 114415 116897 119622 122309 124617 126764 129956 131825 132046
+6 25 - 29 Years 134838 138511 139727 138548 142382 142465 143758 142427 137243
+# ℹ 59 more variables: `2015` &lt;dbl&gt;, `2014` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2012` &lt;dbl&gt;,
+#   `2011` &lt;dbl&gt;, `2010` &lt;dbl&gt;, `2009` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2007` &lt;dbl&gt;,
+#   `2006` &lt;dbl&gt;, `2005` &lt;dbl&gt;, `2004` &lt;dbl&gt;, `2003` &lt;dbl&gt;, `2002` &lt;dbl&gt;,
+#   `2001` &lt;dbl&gt;, `2000` &lt;dbl&gt;, `1999` &lt;chr&gt;, `1998` &lt;chr&gt;, `1997` &lt;chr&gt;,
+#   `1996` &lt;chr&gt;, `1995` &lt;chr&gt;, `1994` &lt;chr&gt;, `1993` &lt;chr&gt;, `1992` &lt;chr&gt;,
+#   `1991` &lt;chr&gt;, `1990` &lt;chr&gt;, `1989` &lt;chr&gt;, `1988` &lt;chr&gt;, `1987` &lt;chr&gt;,
+#   `1986` &lt;chr&gt;, `1985` &lt;chr&gt;, `1984` &lt;chr&gt;, `1983` &lt;chr&gt;, `1982` &lt;chr&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="convert-year-columns-to-numeric" class="level2">
+<h2 class="anchored" data-anchor-id="convert-year-columns-to-numeric">2.3 Convert year columns to numeric</h2>
+<p>Ensure every “year” column is stored as numeric.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure every “year” column is numeric</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>sg_raw <span class="ot">&lt;-</span> sg_raw <span class="sc">%&gt;%</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span><span class="st">`</span><span class="at">Data Series</span><span class="st">`</span>, as.numeric))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There were 43 warnings in `mutate()`.
+The first warning was:
+ℹ In argument: `across(-`Data Series`, as.numeric)`.
+Caused by warning:
+! NAs introduced by coercion
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 42 remaining warnings.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sg_raw)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 69
+  `Data Series` `2024` `2023` `2022` `2021` `2020` `2019` `2018` `2017` `2016`
+  &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0 - 4 Years    87373  89629  90906  91043  93388  94666  94916  96041  95678
+2 5 - 9 Years   103289 103249 103270 101980 101729 101051 101636 102010 102426
+3 10 - 14 Years 104252 104335 103066 102112 104967 105661 105026 104885 105589
+4 15 - 19 Years 107262 106461 105521 104927 109868 113555 116102 119500 122911
+5 20 - 24 Years 114415 116897 119622 122309 124617 126764 129956 131825 132046
+6 25 - 29 Years 134838 138511 139727 138548 142382 142465 143758 142427 137243
+# ℹ 59 more variables: `2015` &lt;dbl&gt;, `2014` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2012` &lt;dbl&gt;,
+#   `2011` &lt;dbl&gt;, `2010` &lt;dbl&gt;, `2009` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2007` &lt;dbl&gt;,
+#   `2006` &lt;dbl&gt;, `2005` &lt;dbl&gt;, `2004` &lt;dbl&gt;, `2003` &lt;dbl&gt;, `2002` &lt;dbl&gt;,
+#   `2001` &lt;dbl&gt;, `2000` &lt;dbl&gt;, `1999` &lt;dbl&gt;, `1998` &lt;dbl&gt;, `1997` &lt;dbl&gt;,
+#   `1996` &lt;dbl&gt;, `1995` &lt;dbl&gt;, `1994` &lt;dbl&gt;, `1993` &lt;dbl&gt;, `1992` &lt;dbl&gt;,
+#   `1991` &lt;dbl&gt;, `1990` &lt;dbl&gt;, `1989` &lt;dbl&gt;, `1988` &lt;dbl&gt;, `1987` &lt;dbl&gt;,
+#   `1986` &lt;dbl&gt;, `1985` &lt;dbl&gt;, `1984` &lt;dbl&gt;, `1983` &lt;dbl&gt;, `1982` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="split-into-male-and-female-blocks" class="level2">
+<h2 class="anchored" data-anchor-id="split-into-male-and-female-blocks">2.4 Split into male and female blocks</h2>
+<p>Find where “Total Female Residents” occurs and split into two tibbles.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find where the female block starts, then split</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>female_start <span class="ot">&lt;-</span> <span class="fu">which</span>(sg_raw<span class="sc">$</span><span class="st">`</span><span class="at">Data Series</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Total Female Residents"</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>sg_male   <span class="ot">&lt;-</span> sg_raw <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span>(female_start <span class="sc">-</span> <span class="dv">1</span>))</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>sg_female <span class="ot">&lt;-</span> sg_raw <span class="sc">%&gt;%</span> <span class="fu">slice</span>((female_start <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">n</span>())</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>sg_male</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 24 × 69
+   `Data Series` `2024` `2023` `2022` `2021` `2020` `2019` `2018` `2017` `2016`
+   &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+ 1 0 - 4 Years    87373  89629  90906  91043  93388  94666  94916  96041  95678
+ 2 5 - 9 Years   103289 103249 103270 101980 101729 101051 101636 102010 102426
+ 3 10 - 14 Years 104252 104335 103066 102112 104967 105661 105026 104885 105589
+ 4 15 - 19 Years 107262 106461 105521 104927 109868 113555 116102 119500 122911
+ 5 20 - 24 Years 114415 116897 119622 122309 124617 126764 129956 131825 132046
+ 6 25 - 29 Years 134838 138511 139727 138548 142382 142465 143758 142427 137243
+ 7 30 - 34 Years 155182 156440 153268 145681 143022 140208 133775 132378 135596
+ 8 35 - 39 Years 148792 141580 137395 137345 141357 142118 143661 142776 143553
+ 9 40 - 44 Years 146404 146677 142574 139814 142801 143869 145974 150641 152466
+10 45 - 49 Years 143865 145297 147359 146202 151690 151637 149811 148095 147517
+# ℹ 14 more rows
+# ℹ 59 more variables: `2015` &lt;dbl&gt;, `2014` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2012` &lt;dbl&gt;,
+#   `2011` &lt;dbl&gt;, `2010` &lt;dbl&gt;, `2009` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2007` &lt;dbl&gt;,
+#   `2006` &lt;dbl&gt;, `2005` &lt;dbl&gt;, `2004` &lt;dbl&gt;, `2003` &lt;dbl&gt;, `2002` &lt;dbl&gt;,
+#   `2001` &lt;dbl&gt;, `2000` &lt;dbl&gt;, `1999` &lt;dbl&gt;, `1998` &lt;dbl&gt;, `1997` &lt;dbl&gt;,
+#   `1996` &lt;dbl&gt;, `1995` &lt;dbl&gt;, `1994` &lt;dbl&gt;, `1993` &lt;dbl&gt;, `1992` &lt;dbl&gt;,
+#   `1991` &lt;dbl&gt;, `1990` &lt;dbl&gt;, `1989` &lt;dbl&gt;, `1988` &lt;dbl&gt;, `1987` &lt;dbl&gt;, …</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sg_female</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 69
+   `Data Series` `2024` `2023` `2022` `2021` `2020` `2019` `2018` `2017` `2016`
+   &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+ 1 0 - 4 Years    83123  85639  87179  87392  89688  90689  90612  91612  91482
+ 2 5 - 9 Years    98793  98725  98090  96780  97008  96724  97430  98565  99083
+ 3 10 - 14 Years 100139 100124  99313  97881 101426 102265 101504 101368 101906
+ 4 15 - 19 Years 103805 103118 101228  99986 105366 108667 110418 113473 116860
+ 5 20 - 24 Years 110229 112169 113681 115411 119920 122315 125560 127247 128808
+ 6 25 - 29 Years 134698 139378 140355 139489 144615 145729 147873 147771 142745
+ 7 30 - 34 Years 165304 167187 163885 155379 154776 153238 147622 146962 149948
+ 8 35 - 39 Years 165783 158457 153586 151876 158158 158700 160059 158180 158445
+ 9 40 - 44 Years 163855 163496 157297 152956 156490 156894 157666 160843 160979
+10 45 - 49 Years 157359 157218 156958 153923 160050 160045 158027 155362 153666
+# ℹ 15 more rows
+# ℹ 59 more variables: `2015` &lt;dbl&gt;, `2014` &lt;dbl&gt;, `2013` &lt;dbl&gt;, `2012` &lt;dbl&gt;,
+#   `2011` &lt;dbl&gt;, `2010` &lt;dbl&gt;, `2009` &lt;dbl&gt;, `2008` &lt;dbl&gt;, `2007` &lt;dbl&gt;,
+#   `2006` &lt;dbl&gt;, `2005` &lt;dbl&gt;, `2004` &lt;dbl&gt;, `2003` &lt;dbl&gt;, `2002` &lt;dbl&gt;,
+#   `2001` &lt;dbl&gt;, `2000` &lt;dbl&gt;, `1999` &lt;dbl&gt;, `1998` &lt;dbl&gt;, `1997` &lt;dbl&gt;,
+#   `1996` &lt;dbl&gt;, `1995` &lt;dbl&gt;, `1994` &lt;dbl&gt;, `1993` &lt;dbl&gt;, `1992` &lt;dbl&gt;,
+#   `1991` &lt;dbl&gt;, `1990` &lt;dbl&gt;, `1989` &lt;dbl&gt;, `1988` &lt;dbl&gt;, `1987` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="pivot-to-long-and-add-a-sex-column" class="level2">
+<h2 class="anchored" data-anchor-id="pivot-to-long-and-add-a-sex-column">2.5 Pivot to long and add a “sex” column</h2>
+<p>Reshape each half to long format and add a sex column.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot each half to long and tag sex</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>sg_long <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  sg_male <span class="sc">%&gt;%</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">cols      =</span> <span class="sc">-</span><span class="st">`</span><span class="at">Data Series</span><span class="st">`</span>, </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">names_to  =</span> <span class="st">"year"</span>, </span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">values_to =</span> <span class="st">"pop"</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="st">"Male"</span>),</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  sg_female <span class="sc">%&gt;%</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">cols      =</span> <span class="sc">-</span><span class="st">`</span><span class="at">Data Series</span><span class="st">`</span>, </span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">names_to  =</span> <span class="st">"year"</span>, </span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">values_to =</span> <span class="st">"pop"</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">sex =</span> <span class="st">"Female"</span>)</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>sg_long</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3,332 × 4
+   `Data Series` year    pop sex  
+   &lt;chr&gt;         &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;
+ 1 0 - 4 Years   2024  87373 Male 
+ 2 0 - 4 Years   2023  89629 Male 
+ 3 0 - 4 Years   2022  90906 Male 
+ 4 0 - 4 Years   2021  91043 Male 
+ 5 0 - 4 Years   2020  93388 Male 
+ 6 0 - 4 Years   2019  94666 Male 
+ 7 0 - 4 Years   2018  94916 Male 
+ 8 0 - 4 Years   2017  96041 Male 
+ 9 0 - 4 Years   2016  95678 Male 
+10 0 - 4 Years   2015  93852 Male 
+# ℹ 3,322 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="tidy-cohorts-and-dedupe" class="level1">
+<h1>2.6 Tidy cohorts and dedupe</h1>
+<p>Extract numeric age, flag cumulative rows, sort so closed bins beat “&amp; Over,” then dedupe.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>sg_tidy <span class="ot">&lt;-</span> sg_long <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">cohort =</span> <span class="st">`</span><span class="at">Data Series</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">year          =</span> <span class="fu">as.integer</span>(year),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">age           =</span> <span class="fu">as.integer</span>(<span class="fu">str_extract</span>(cohort, <span class="st">"^[0-9]+"</span>)),</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">is_cumulative =</span> <span class="fu">str_detect</span>(cohort, <span class="st">"Years &amp; Over"</span>),</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex           =</span> <span class="fu">factor</span>(sex, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"Female"</span>))</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(sex, year, age, <span class="fu">is.na</span>(pop), is_cumulative) <span class="sc">%&gt;%</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(sex, year, age, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>sg_tidy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2,652 × 6
+   cohort         year    pop sex     age is_cumulative
+   &lt;chr&gt;         &lt;int&gt;  &lt;dbl&gt; &lt;fct&gt; &lt;int&gt; &lt;lgl&gt;        
+ 1 0 - 4 Years    1957 136712 Male      0 FALSE        
+ 2 5 - 9 Years    1957 112030 Male      5 FALSE        
+ 3 10 - 14 Years  1957  71219 Male     10 FALSE        
+ 4 15 - 19 Years  1957  70137 Male     15 FALSE        
+ 5 20 - 24 Years  1957  61254 Male     20 FALSE        
+ 6 25 - 29 Years  1957  59776 Male     25 FALSE        
+ 7 30 - 34 Years  1957  50148 Male     30 FALSE        
+ 8 35 - 39 Years  1957  46506 Male     35 FALSE        
+ 9 40 - 44 Years  1957  43041 Male     40 FALSE        
+10 45 - 49 Years  1957  37773 Male     45 FALSE        
+# ℹ 2,642 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="filter-decades-and-nonzero-values" class="level1">
+<h1>2.7 Filter decades and nonzero values</h1>
+<p>Keep only decades (1960–2020), drop NA ages/pops and zero counts, then select final columns.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>sg_tidy <span class="ot">&lt;-</span> sg_tidy <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    year <span class="sc">%in%</span> <span class="fu">seq</span>(<span class="dv">1960</span>, <span class="dv">2020</span>, <span class="at">by =</span> <span class="dv">10</span>),</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(age),</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(pop),</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    pop <span class="sc">!=</span> <span class="dv">0</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(age, sex, year, pop) <span class="sc">%&gt;%</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(age, sex, year)</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>sg_tidy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 250 × 4
+     age sex     year    pop
+   &lt;int&gt; &lt;fct&gt;  &lt;int&gt;  &lt;dbl&gt;
+ 1     0 Male    1960 152200
+ 2     0 Male    1970 118335
+ 3     0 Male    1980  96694
+ 4     0 Male    1990 116014
+ 5     0 Male    2000 116756
+ 6     0 Male    2010  98890
+ 7     0 Male    2020  93388
+ 8     0 Female  1960 144800
+ 9     0 Female  1970 111830
+10     0 Female  1980  89146
+# ℹ 240 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="verify-against-the-reference-csv" class="level1">
+<h1>2.8 Verify against the reference CSV</h1>
+<p>Compare to the provided CSV to ensure an exact match.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare to the provided CSV to verify</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>sg_ref <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"sg_5yr_cohorts.csv"</span>,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">sex =</span> <span class="fu">col_factor</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"Female"</span>)))</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>waldo<span class="sc">::</span><span class="fu">compare</span>(sg_tidy, sg_ref, <span class="at">tolerance =</span> <span class="fl">1e-12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✔ No differences</code></pre>
+</div>
+</div>
+</section>
+<section id="display-the-final-tidy-table" class="level1">
+<h1>2. 9 Display the final tidy table</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(sg_tidy, <span class="at">n =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 250 × 4
+     age sex     year    pop
+   &lt;int&gt; &lt;fct&gt;  &lt;int&gt;  &lt;dbl&gt;
+ 1     0 Male    1960 152200
+ 2     0 Male    1970 118335
+ 3     0 Male    1980  96694
+ 4     0 Male    1990 116014
+ 5     0 Male    2000 116756
+ 6     0 Male    2010  98890
+ 7     0 Male    2020  93388
+ 8     0 Female  1960 144800
+ 9     0 Female  1970 111830
+10     0 Female  1980  89146
+11     0 Female  1990 108035
+12     0 Female  2000 108949
+13     0 Female  2010  95542
+14     0 Female  2020  89688
+15     5 Male    1960 128400
+16     5 Male    1970 140633
+17     5 Male    1980 112015
+18     5 Male    1990 106723
+19     5 Male    2000 132200
+20     5 Male    2010 110215
+# ℹ 230 more rows</code></pre>
+</div>
+</div>
+</section>
 
 </main>
 <!-- /main column -->

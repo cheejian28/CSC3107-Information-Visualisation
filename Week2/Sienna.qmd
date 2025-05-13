@@ -86,3 +86,147 @@ world_ref <- readr::read_csv("country_profiles_2019.csv")
 waldo::compare(final_df, world_ref, tolerance = 1e-12)
 ```
 
+## Question 2 Population Statistics for Singapore
+
+In this section we’ll extract five-year age cohorts from the “T4” sheet of `outputFile.xlsx`, infer the size of the oldest cohort, and verify the result against `sg_5yr_cohorts.csv`.
+
+## 2.1 Import Data
+
+Read the “T4” sheet of the Excel file, skipping the first 10 rows of the sheet.
+
+```{r}
+#| label: import-data
+library(tidyverse)  # loads dplyr, tidyr, stringr, readr, etc.
+library(readxl)
+library(waldo)
+
+# Read T4, skipping the first 10 rows of metadata
+t4 <- read_xlsx("data/outputFile.xlsx", sheet = "T4", skip = 10)
+head(t4)
+```
+
+## 2.2 Extract the relevant rows
+
+Select rows 37–86 of the original sheet (tibble rows 27–76).
+
+```{r}
+#| label: extract-rows
+# Extract the rows 37–86 of the original sheet (tibble rows 27–76)
+sg_raw <- t4 %>% slice(27:76)
+head(sg_raw)
+```
+
+## 2.3 Convert year columns to numeric
+
+Ensure every “year” column is stored as numeric.
+
+```{r}
+#| label: convert-types
+# Ensure every “year” column is numeric
+sg_raw <- sg_raw %>% 
+  mutate(across(-`Data Series`, as.numeric))
+
+head(sg_raw)
+```
+
+## 2.4 Split into male and female blocks
+
+Find where “Total Female Residents” occurs and split into two tibbles.
+
+```{r}
+#| label: split-sex
+# Find where the female block starts, then split
+female_start <- which(sg_raw$`Data Series` == "Total Female Residents")
+sg_male   <- sg_raw %>% slice(1:(female_start - 1))
+sg_female <- sg_raw %>% slice((female_start + 1):n())
+sg_male
+sg_female
+```
+
+## 2.5 Pivot to long and add a "sex" column
+
+Reshape each half to long format and add a sex column.
+
+```{r}
+#| label: pivot-long
+# Pivot each half to long and tag sex
+sg_long <- bind_rows(
+  sg_male %>%
+    pivot_longer(
+      cols      = -`Data Series`, 
+      names_to  = "year", 
+      values_to = "pop"
+    ) %>%
+    mutate(sex = "Male"),
+  
+  sg_female %>%
+    pivot_longer(
+      cols      = -`Data Series`, 
+      names_to  = "year", 
+      values_to = "pop"
+    ) %>%
+    mutate(sex = "Female")
+)
+sg_long
+```
+
+# 2.6 Tidy cohorts and dedupe
+
+Extract numeric age, flag cumulative rows, sort so closed bins beat “& Over,” then dedupe.
+
+```{r}
+#| label: tidy-cohorts
+
+sg_tidy <- sg_long %>%
+  rename(cohort = `Data Series`) %>%
+  mutate(
+    year          = as.integer(year),
+    age           = as.integer(str_extract(cohort, "^[0-9]+")),
+    is_cumulative = str_detect(cohort, "Years & Over"),
+    sex           = factor(sex, levels = c("Male", "Female"))
+  ) %>%
+  arrange(sex, year, age, is.na(pop), is_cumulative) %>%
+  distinct(sex, year, age, .keep_all = TRUE)
+sg_tidy
+```
+
+# 2.7 Filter decades and nonzero values
+
+Keep only decades (1960–2020), drop NA ages/pops and zero counts, then select final columns.
+
+```{r}
+#| label: filter-data
+
+
+sg_tidy <- sg_tidy %>%
+  filter(
+    year %in% seq(1960, 2020, by = 10),
+    !is.na(age),
+    !is.na(pop),
+    pop != 0
+  ) %>%
+  select(age, sex, year, pop) %>%
+  arrange(age, sex, year)
+sg_tidy
+```
+
+# 2.8 Verify against the reference CSV
+
+Compare to the provided CSV to ensure an exact match.
+
+```{r}
+#| label: verify
+# Compare to the provided CSV to verify
+sg_ref <- read_csv(
+  "sg_5yr_cohorts.csv",
+  col_types = cols(sex = col_factor(levels = c("Male", "Female")))
+)
+waldo::compare(sg_tidy, sg_ref, tolerance = 1e-12)
+```
+
+# 2. 9 Display the final tidy table
+
+```{r}
+#| label: show-final
+print(sg_tidy, n = 20)
+```
