@@ -1,0 +1,88 @@
+---
+title: "Week2Assignment"
+author: "Team Sienna"
+format: html
+editor: visual
+---
+
+## Question 1
+
+## Import Data
+
+```{r}
+#| label : import_data
+#| echo: false
+# Load required libraries
+library(tidyverse)
+library(readxl)
+library(countrycode)
+
+# Load each dataset into individual dataframes
+
+# GDP per capita
+gdp <- read_excel("data/API_NY.GDP.PCAP.CD_DS2_en_excel_v2_85284.xls", skip = 3)
+gdp <- select(gdp, "Country Name", "Country Code", gdp_per_cap = "2019")
+gdp
+
+# Life Expectancy
+life_expectancy <- read_excel("data/API_SP.DYN.LE00.IN_DS2_en_excel_v2_85119.xls", skip = 3)
+life_expectancy <- select(life_expectancy, "Country Name", "Country Code", life_exp = "2019")
+life_expectancy
+
+# Population
+population <- read_excel("data/API_SP.POP.TOTL_DS2_en_excel_v2_85347.xls", skip = 3)
+population <- select(population, "Country Name", "Country Code", pop = "2019")
+population
+```
+
+## Combine all three dataframes into one
+
+```{r}
+#| label: combine_data
+#| echo: false
+combined_df <- gdp %>%
+  left_join(life_expectancy, by = c("Country Name", "Country Code")) %>%
+  left_join(population, by = c("Country Name", "Country Code"))
+combined_df
+```
+
+## Load codelist
+
+```{r}
+#| label: load_codelist
+#| echo: false
+data("codelist")
+head(codelist)
+```
+
+## Final data frame
+
+```{r}
+#| label: final_data
+#| echo: false
+final_df <- combined_df %>%
+  ## 2. Restrict to actual countries
+  inner_join(codelist, by = c("Country Code" = "wb")) %>%
+  
+  ## 3. Add continent information
+  select(name = "Country Name", code = "iso3c", gdp_per_cap, life_exp, pop, continent) %>%
+  
+  ## 4. Format data
+  arrange(name) %>%
+  
+  ## 5. No Missing Data
+  drop_na()
+
+# Display final table
+final_df
+```
+
+## Compare with reference data
+
+```{r}
+#| label: compare_data
+#| echo: false
+world_ref <- readr::read_csv("country_profiles_2019.csv")
+waldo::compare(final_df, world_ref, tolerance = 1e-12)
+```
+
