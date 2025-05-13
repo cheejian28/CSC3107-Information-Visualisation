@@ -17,7 +17,7 @@ library(tidyverse)
 library(readxl)
 library(countrycode)
 
-# Load each dataset into individual dataframes
+# Load each data-set into individual data frames
 
 # GDP per capita
 gdp <- read_excel("data/API_NY.GDP.PCAP.CD_DS2_en_excel_v2_85284.xls", skip = 3)
@@ -230,3 +230,17 @@ waldo::compare(sg_tidy, sg_ref, tolerance = 1e-12)
 #| label: show-final
 print(sg_tidy, n = 20)
 ```
+## Reflections
+
+**1. Key takeaway**  
+We learned how to use tidyverse to clean and organize data. This was useful as it made the data easier to work with later.
+
+**2. Challenges**  
+Some parts of the data processing were confusing at first, especially reshaping the data and dealing with different formats. It took some trial and error to get everything working correctly.
+
+
+**3. AI assistance**  
+We used ChatGPT to help us understand the logic for handling cumulative cohort entries and to check our R syntax and code structure.
+
+**4. Teamwork**  
+We worked together to complete the task. We communicated well, but we can improve our coordination next time.
