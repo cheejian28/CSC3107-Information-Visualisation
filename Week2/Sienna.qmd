@@ -5,13 +5,22 @@ format: html
 editor: visual
 ---
 
-## Question 1
+# Question 1 Country-Level Statistics from World Bank
+
+In this section we extracted and combined 2019 country-level data on GDP per capita, life expectancy, and population from World Bank XLS files.
 
 ## Import Data
 
+Importing data from 3 different data sets
+
+-   [GDP per capita (current US\$)](https://data-vis-using-r.info/public_data/country_stats/API_NY.GDP.PCAP.CD_DS2_en_excel_v2_85284.xls)
+
+-   [Life expectancy at birth, total (years)](https://data-vis-using-r.info/public_data/country_stats/API_SP.DYN.LE00.IN_DS2_en_excel_v2_85119.xls)
+
+-   [Population](https://data-vis-using-r.info/public_data/country_stats/API_SP.POP.TOTL_DS2_en_excel_v2_85347.xls)
+
 ```{r}
 #| label : import_data
-#| echo: false
 # Load required libraries
 library(tidyverse)
 library(readxl)
@@ -35,11 +44,12 @@ population <- select(population, "Country Name", "Country Code", pop = "2019")
 population
 ```
 
-## Combine all three dataframes into one
+## Combine all three data frames into one
+
+Combining data frames using left join.
 
 ```{r}
 #| label: combine_data
-#| echo: false
 combined_df <- gdp %>%
   left_join(life_expectancy, by = c("Country Name", "Country Code")) %>%
   left_join(population, by = c("Country Name", "Country Code"))
@@ -48,18 +58,20 @@ combined_df
 
 ## Load codelist
 
+Load the country code list to get country's continent
+
 ```{r}
 #| label: load_codelist
-#| echo: false
 data("codelist")
 head(codelist)
 ```
 
 ## Final data frame
 
+Constructing the final data frame.
+
 ```{r}
 #| label: final_data
-#| echo: false
 final_df <- combined_df %>%
   ## 2. Restrict to actual countries
   inner_join(codelist, by = c("Country Code" = "wb")) %>%
@@ -79,16 +91,17 @@ final_df
 
 ## Compare with reference data
 
+The reference data can be found [here](https://data-vis-using-r.info/public_data/country_stats/country_profiles_2019.csv).
+
 ```{r}
 #| label: compare_data
-#| echo: false
 world_ref <- readr::read_csv("country_profiles_2019.csv")
 waldo::compare(final_df, world_ref, tolerance = 1e-12)
 ```
 
-## Question 2 Population Statistics for Singapore
+# Question 2 Population Statistics for Singapore
 
-In this section we’ll extract five-year age cohorts from the “T4” sheet of `outputFile.xlsx`, infer the size of the oldest cohort, and verify the result against `sg_5yr_cohorts.csv`.
+In this section we’ll extract five-year age cohorts from the “T4” sheet of [`outputFile.xlsx`](https://data-vis-using-r.info/public_data/sg_pop/outputFile.xlsx), infer the size of the oldest cohort, and verify the result against [`sg_5yr_cohorts.csv`](https://data-vis-using-r.info/public_data/sg_pop/sg_5yr_cohorts.csv).
 
 ## 2.1 Import Data
 
@@ -170,7 +183,7 @@ sg_long <- bind_rows(
 sg_long
 ```
 
-# 2.6 Tidy cohorts and dedupe
+## 2.6 Tidy cohorts and dedupe
 
 Extract numeric age, flag cumulative rows, sort so closed bins beat “& Over,” then dedupe.
 
@@ -190,7 +203,7 @@ sg_tidy <- sg_long %>%
 sg_tidy
 ```
 
-# 2.7 Filter decades and nonzero values
+## 2.7 Filter decades and nonzero values
 
 Keep only decades (1960–2020), drop NA ages/pops and zero counts, then select final columns.
 
@@ -210,7 +223,7 @@ sg_tidy <- sg_tidy %>%
 sg_tidy
 ```
 
-# 2.8 Verify against the reference CSV
+## 2.8 Verify against the reference CSV
 
 Compare to the provided CSV to ensure an exact match.
 
@@ -224,23 +237,23 @@ sg_ref <- read_csv(
 waldo::compare(sg_tidy, sg_ref, tolerance = 1e-12)
 ```
 
-# 2. 9 Display the final tidy table
+## 2.9 Display the final tidy table
 
 ```{r}
 #| label: show-final
 print(sg_tidy, n = 20)
 ```
+
 ## Reflections
 
-**1. Key takeaway**  
+**1. Key takeaway**\
 We learned how to use tidyverse to clean and organize data. This was useful as it made the data easier to work with later.
 
-**2. Challenges**  
+**2. Challenges**\
 Some parts of the data processing were confusing at first, especially reshaping the data and dealing with different formats. It took some trial and error to get everything working correctly.
 
-
-**3. AI assistance**  
+**3. AI assistance**\
 We used ChatGPT to help us understand the logic for handling cumulative cohort entries and to check our R syntax and code structure.
 
-**4. Teamwork**  
+**4. Teamwork**\
 We worked together to complete the task. We communicated well, but we can improve our coordination next time.
