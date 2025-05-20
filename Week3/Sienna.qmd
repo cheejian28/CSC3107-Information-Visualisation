@@ -1,0 +1,154 @@
+---
+title: "lab3"
+author: "Team Sienna"
+format: html
+editor: visual
+---
+
+# Question 1
+
+```{r}
+#| label: setup
+#| include: false
+# load libraries once
+library(tidyverse)
+library(palmerpenguins)
+library(ggbeeswarm)
+```
+
+## 1.1 Remove Missing Values
+
+```{r}
+#| label: remove_missing
+penguins_clean <- penguins %>%
+  filter(!is.na(bill_length_mm))
+penguins_clean
+```
+
+## 1.2 Scatter Plot of Species vs. Bill Lengths
+
+```{r}
+#| label: scatter_species_bill
+ggplot(penguins_clean, aes(x = bill_length_mm, y = species)) +
+  geom_point() +
+  labs(
+    title   = "Penguin Bill Length by Species",
+    x       = "Bill length (mm)",
+    y       = "Species",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.3 Why Jitter the Plot?
+
+Jittering is useful here because multiple penguins have the same bill length and species, causing points to overlap. Without jittering, these duplicates are hidden, making it hard to judge frequency.
+
+## 1.4 Jitter Plot
+
+```{r}
+#| label: jitter_plot
+ggplot(penguins_clean, aes(x = bill_length_mm, y = species)) +
+  geom_jitter(width = 0, height = 0.2, alpha = 0.5) +
+  labs(
+    title   = "Jittered Bill Length by Species",
+    x       = "Bill length (mm)",
+    y       = "Species",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.5 Bee-Swarm Plot
+
+```{r}
+#| label: beeswarm_plot
+ggplot(penguins_clean, aes(x = bill_length_mm, y = species)) +
+  geom_beeswarm(cex = 3, alpha = 0.7) +
+  labs(
+    title   = "Bee-Swarm of Bill Length by Species",
+    x       = "Bill length (mm)",
+    y       = "Species",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.6 Pros and Cons of Bee-Swarm Plots
+
+-   **Advantage:**\
+    A bee-swarm plot shows each individual point’s exact value and relative density without random displacement. You can see clusters of identical bill lengths clearly aligned along the axis.
+
+-   **Disadvantage:**\
+    When there are many observations or very tight clusters, points can overlap or spread too far, making the plot look cluttered and potentially misleading about true density.
+
+## 1.7 Violin Plot with Boxes
+
+```{r}
+#| label: violin_box
+ggplot(penguins_clean, aes(x = bill_length_mm, y = species)) +
+  geom_violin(trim = FALSE, fill = "lightblue", alpha = 0.6) +
+  geom_boxplot(width = 0.2, fill = "white", outlier.shape = NA, outlier.size = 0.5) +
+  labs(
+    title   = "Violin + Boxplot of Bill Length by Species",
+    x       = "Bill length (mm)",
+    y       = "Species",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.8 What Does a Violin Plot Add to a Box Plot?
+
+A violin plot shows the full density distribution—peaks and multimodality that a boxplot’s quartiles and whiskers alone cannot reveal.
+
+## 1.9 Frequency Polygons with Rug Plot
+
+```{r}
+#| label: freqpoly_rug
+ggplot(penguins_clean, aes(x = bill_length_mm, color = species)) +
+  geom_freqpoly(binwidth = 1,linewidth=1) +
+  geom_rug(aes(color = species), sides = "b", alpha = 0.5) +
+  labs(
+    title   = "Frequency Polygons with Rug Plot",
+    x       = "Bill length (mm)",
+    y       = "Count",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.10 Faceted Frequency Polygons with Rug Plots
+
+```{r}
+#| label: faceted_freqpoly
+ggplot(penguins_clean, aes(x = bill_length_mm)) +
+  geom_freqpoly(aes(color = species), binwidth = 1) +
+  geom_rug(sides = "b", alpha = 0.5) +
+  facet_wrap(~ species) +
+  labs(
+    title   = "Faceted Frequency Polygons with Rug",
+    x       = "Bill length (mm)",
+    y       = "Count",
+    caption = "Source: Gorman et al. (2014)"
+  )
+```
+
+## 1.11 Pros and Cons of Faceting
+
+**Strength:** Clearly compares each species’ distribution on its own scale.
+
+**Weakness:** Harder to compare absolute heights across species since y-axes are separate.
+
+## 1.12 Unmarked Bonus Question: Pairwise t-Test
+
+```{r}
+#| label: t_test
+# 1. means
+penguins_clean %>%
+  group_by(species) %>%
+  summarize(mean_bill = mean(bill_length_mm))
+
+# 2. pairwise t-tests
+pairwise_t <- pairwise.t.test(
+  x = penguins_clean$bill_length_mm,
+  g = penguins_clean$species,
+  p.adjust.method = "none"
+)
+pairwise_t
+```
