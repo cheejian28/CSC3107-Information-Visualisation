@@ -2,13 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Team Sienna">
+<meta name="author" content="Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda">
+<meta name="dcterms.date" content="2025-05-13">
 
-<title>lab3</title>
+<title>Sienna_P2_Week2Lab</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,10 +65,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="Sienna_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="Sienna_files/libs/quarto-html/anchor.min.js"></script>
 <link href="Sienna_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Sienna_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="Sienna_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="Sienna_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Sienna_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Sienna_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="Sienna_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -80,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">lab3</h1>
+<h1 class="title">Sienna_P2_Week2Lab</h1>
 </div>
 
 
@@ -90,10 +91,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Team Sienna </p>
+             <p>Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda </p>
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 13, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -313,6 +320,222 @@ P value adjustment method: none </code></pre>
 </div>
 </section>
 </section>
+<section id="question-2-find-a-data-set-to-demonstrate-mitigation-of-overplotting" class="level1">
+<h1>Question 2 Find a Data Set to Demonstrate Mitigation of Overplotting</h1>
+<section id="specify-the-source-of-the-data-set-and-explain-what-the-data-represents" class="level2">
+<h2 class="anchored" data-anchor-id="specify-the-source-of-the-data-set-and-explain-what-the-data-represents">2.1 Specify the source of the data set and explain what the data represents</h2>
+<p>We chose a data set from <a href="https://www.kaggle.com/datasets/jayaantanaath/student-habits-vs-academic-performance">kaggle</a> that contains information the relationship between the student habits and their relationship.</p>
+</section>
+<section id="using-r-validate-that-the-data-set-satisfies-condition-c-d-e" class="level2">
+<h2 class="anchored" data-anchor-id="using-r-validate-that-the-data-set-satisfies-condition-c-d-e">2.2 Using R, validate that the data set satisfies condition C, D, E</h2>
+<section id="to-validate-that-the-data-set-contains-between-20-and-500-observation" class="level3">
+<h3 class="anchored" data-anchor-id="to-validate-that-the-data-set-contains-between-20-and-500-observation">To validate that the data set contains between 20 and 500 observation</h3>
+<p>We choose to do a random sample of 300 dataset</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4325243</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"student_habits_performance.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 1000 Columns: 16
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (7): student_id, gender, part_time_job, diet_quality, parental_education...
+dbl (9): age, study_hours_per_day, social_media_hours, netflix_hours, attend...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">sample_n</span>(<span class="dv">300</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="to-validate-that-the-data-set-consists-of-at-least-two-quantitative-variables" class="level3">
+<h3 class="anchored" data-anchor-id="to-validate-that-the-data-set-consists-of-at-least-two-quantitative-variables">To validate that the data set consists of at least two quantitative-variables</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>spc_tbl_ [300 × 16] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ student_id                   : chr [1:300] "S1186" "S1383" "S1196" "S1181" ...
+ $ age                          : num [1:300] 18 21 18 23 24 22 22 22 17 22 ...
+ $ gender                       : chr [1:300] "Female" "Male" "Male" "Male" ...
+ $ study_hours_per_day          : num [1:300] 0 2.8 2.7 3.5 2.8 2.6 4.2 2.9 3.2 3.9 ...
+ $ social_media_hours           : num [1:300] 1.9 2.1 2.1 3 4.2 3.4 1.7 2.7 2.6 2.1 ...
+ $ netflix_hours                : num [1:300] 1.5 0.6 1.9 1.5 0.9 5.3 1.8 2.6 2.8 2.2 ...
+ $ part_time_job                : chr [1:300] "No" "No" "No" "Yes" ...
+ $ attendance_percentage        : num [1:300] 82.4 90.4 88.9 79.1 90.3 79.8 73.2 86.8 100 65 ...
+ $ sleep_hours                  : num [1:300] 5.6 6.4 8.7 5.5 6.1 9 6.2 4.7 7.1 5.1 ...
+ $ diet_quality                 : chr [1:300] "Fair" "Good" "Good" "Good" ...
+ $ exercise_frequency           : num [1:300] 3 2 4 0 2 0 3 3 1 2 ...
+ $ parental_education_level     : chr [1:300] "Bachelor" "High School" "High School" "Bachelor" ...
+ $ internet_quality             : chr [1:300] "Average" "Poor" "Poor" "Average" ...
+ $ mental_health_rating         : num [1:300] 8 9 5 9 10 2 2 1 10 9 ...
+ $ extracurricular_participation: chr [1:300] "No" "Yes" "No" "No" ...
+ $ exam_score                   : num [1:300] 55.2 71 64.5 67.4 59.7 49.1 76 45.5 75.4 73.7 ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   student_id = col_character(),
+  ..   age = col_double(),
+  ..   gender = col_character(),
+  ..   study_hours_per_day = col_double(),
+  ..   social_media_hours = col_double(),
+  ..   netflix_hours = col_double(),
+  ..   part_time_job = col_character(),
+  ..   attendance_percentage = col_double(),
+  ..   sleep_hours = col_double(),
+  ..   diet_quality = col_character(),
+  ..   exercise_frequency = col_double(),
+  ..   parental_education_level = col_character(),
+  ..   internet_quality = col_character(),
+  ..   mental_health_rating = col_double(),
+  ..   extracurricular_participation = col_character(),
+  ..   exam_score = col_double()
+  .. )
+ - attr(*, "problems")=&lt;externalptr&gt; </code></pre>
+</div>
+</div>
+</section>
+<section id="to-validate-that-there-is-duplicated-data-points" class="level3">
+<h3 class="anchored" data-anchor-id="to-validate-that-there-is-duplicated-data-points">To validate that there is duplicated data points</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(data<span class="sc">$</span>study_hours_per_day))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="generate-a-scatterplot-using-geom_point" class="level2">
+<h2 class="anchored" data-anchor-id="generate-a-scatterplot-using-geom_point">2.3 Generate a scatterplot using geom_point()</h2>
+<p>This scatterplot shows the relationship between the number of hours studied per day and the exam scores for the student.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(study_hours_per_day, exam_score))<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/scatterplot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="produce-two-distinct-plots-designed-to-mitigate-overplotting.-discuss-their-respective-advantages-and-disadvantages" class="level2">
+<h2 class="anchored" data-anchor-id="produce-two-distinct-plots-designed-to-mitigate-overplotting.-discuss-their-respective-advantages-and-disadvantages">2.4 Produce two distinct plots designed to mitigate overplotting. Discuss their respective advantages and disadvantages</h2>
+<section id="jittering" class="level3">
+<h3 class="anchored" data-anchor-id="jittering">2.4.1 Jittering</h3>
+<p>It is advantageous to see clusters or duplicated points that would otherwise overlap. The disadvantage is that it could add random noise which can lead to misleading patterns. It can cause the plot to be too cluttered which can be hard to see patterns.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>gg_data_jitter <span class="ot">&lt;-</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(study_hours_per_day, exam_score)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>gg_data_jitter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/jittering-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="heat-map-of-2d-bin-counts" class="level3">
+<h3 class="anchored" data-anchor-id="heat-map-of-2d-bin-counts">2.4.2 Heat map of 2d bin counts</h3>
+<p>The advantage that it can clearly shows density or concentration for large data set and reveals distribution structure. The disadvantage is that it shows a view of aggregated counts which means we lose out on individual point details.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>gg_data_heatmap <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(study_hours_per_day, exam_score)) <span class="sc">+</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bin2d</span>() <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"lightblue"</span>, <span class="at">high =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>gg_data_heatmap</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/heatmap-bin-counts-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="create-two-distinct-plots-that-exhibit-trends-in-data-using-different-smoothing-interpolation.-highlight-their-relative-strengths-and-weakness." class="level2">
+<h2 class="anchored" data-anchor-id="create-two-distinct-plots-that-exhibit-trends-in-data-using-different-smoothing-interpolation.-highlight-their-relative-strengths-and-weakness.">2.5 Create two distinct plots that exhibit trends in data using different smoothing interpolation. Highlight their relative strengths and weakness.</h2>
+<section id="default-smoothing-using-loess-method" class="level3">
+<h3 class="anchored" data-anchor-id="default-smoothing-using-loess-method">2.5.1 Default Smoothing using Loess method</h3>
+<p>It is advantageous as it automatically chooses a reasonable smoothing pattern which shows a good smoothing. However it can be unpredictable at times because we are not aware of which method it uses and the line can be skewed by outliers based on the plot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>gg_data_smooth <span class="ot">&lt;-</span> gg_data_jitter <span class="sc">+</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>) <span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Default Smoothing"</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>gg_data_smooth</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/loess-method-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="wiggle-smoothing" class="level3">
+<h3 class="anchored" data-anchor-id="wiggle-smoothing">2.5.2 Wiggle Smoothing</h3>
+<p>It is advantageous when it comes to handling data that are nonlinear, however our current data shows a linear relationship hence the smoothing does not show its best potential. The disadvantage is that it is harder to interpret.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>gg_data_wiggle <span class="ot">&lt;-</span> gg_data_jitter <span class="sc">+</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">span =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Wiggle Smoothing"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>gg_data_wiggle</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/wiggle-smoothing-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="linear-model" class="level3">
+<h3 class="anchored" data-anchor-id="linear-model">2.5.3 Linear Model</h3>
+<p>It is advantageous as it is simple and easy to interpret and can clearly show trend lines. The disadvantage would be that it always assume that the data is a linear relationship, which can be a poor indication when given a non linear pattern.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>gg_data_linear <span class="ot">&lt;-</span> gg_data_jitter <span class="sc">+</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Linear"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$title
+[1] "Linear"
+
+attr(,"class")
+[1] "labels"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>gg_data_linear</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Sienna_files/figure-html/linear-model-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="reflections" class="level2">
+<h2 class="anchored" data-anchor-id="reflections">Reflections</h2>
+<p><strong>1. Key takeaway</strong><br>
+One key takeaway from this lab was learning how to mitigate overplotting using techniques like jitter plots and bee-swarm plots. This stood out because it clearly showed how raw data can be misleading or hard to interpret when points overlap and how simple visualization tweaks can greatly improve clarity.</p>
+<p><strong>2. Challenges</strong><br>
+A challenge we encountered was understanding the correct parameters for jittering only in the y-direction without distorting the x-values. It took some experimentation with the width and height arguments to produce a visually informative plot that still preserved the structure of the data.</p>
+<p><strong>3. AI assistance</strong><br>
+We used AI tools like ChatGPT to clarify certain concepts (such as the difference between jitter and bee-swarm plots) and to help troubleshoot coding errors. The assistance helped us better understand the visualizations and complete the tasks more efficiently.</p>
+<p><strong>4. Teamwork</strong><br>
+Our team collaborated by discussing each part of the lab together and sharing ideas on how to approach the tasks. A strength was that everyone contributed to the discussion and problem-solving. One area we could improve is organizing our work more clearly from the start to avoid overlapping efforts.</p>
+</section>
+</section>
 
 </main>
 <!-- /main column -->
@@ -398,6 +621,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
   clipboard.on('success', onCopySuccess);
   if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
     const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
       text: getTextToCopy,
       container: window.document.getElementById('quarto-embedded-source-code-modal')
@@ -508,6 +733,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
+      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {

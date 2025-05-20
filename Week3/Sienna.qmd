@@ -1,6 +1,7 @@
 ---
-title: "lab3"
-author: "Team Sienna"
+title: "Sienna_P2_Week3Lab"
+author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
+date: "19 May 2025"
 format: html
 editor: visual
 ---
@@ -152,3 +153,131 @@ pairwise_t <- pairwise.t.test(
 )
 pairwise_t
 ```
+
+# Question 2 Find a Data Set to Demonstrate Mitigation of Overplotting
+
+## 2.1 Specify the source of the data set and explain what the data represents
+
+We chose a data set from [kaggle](https://www.kaggle.com/datasets/jayaantanaath/student-habits-vs-academic-performance) that contains information the relationship between the student habits and their relationship.
+
+## 2.2 Using R, validate that the data set satisfies condition C, D, E
+
+### To validate that the data set contains between 20 and 500 observation
+
+We choose to do a random sample of 300 dataset
+
+```{r}
+#| label: random-sample
+set.seed(4325243)
+data <- read_csv("student_habits_performance.csv")
+data <- data %>% sample_n(300)
+```
+
+### To validate that the data set consists of at least two quantitative-variables
+
+```{r}
+#| label: quantitative-variables
+str(data)
+```
+
+### To validate that there is duplicated data points
+
+```{r}
+#| label: duplicate-checks
+any(duplicated(data$study_hours_per_day))
+```
+
+## 2.3 Generate a scatterplot using geom_point()
+
+This scatterplot shows the relationship between the number of hours studied per day and the exam scores for the student.
+
+```{r}
+#| label: scatterplot
+ggplot(data, aes(study_hours_per_day, exam_score))+geom_point()
+
+```
+
+## 2.4 Produce two distinct plots designed to mitigate overplotting. Discuss their respective advantages and disadvantages
+
+### 2.4.1 Jittering
+
+It is advantageous to see clusters or duplicated points that would otherwise overlap. The disadvantage is that it could add random noise which can lead to misleading patterns. It can cause the plot to be too cluttered which can be hard to see patterns.
+
+```{r}
+#| label: jittering
+
+
+gg_data_jitter <-
+  ggplot(data, aes(study_hours_per_day, exam_score)) +
+  geom_jitter(alpha = 0.5)
+gg_data_jitter
+```
+
+### 2.4.2 Heat map of 2d bin counts
+
+The advantage that it can clearly shows density or concentration for large data set and reveals distribution structure. The disadvantage is that it shows a view of aggregated counts which means we lose out on individual point details.
+
+```{r}
+#| label: heatmap-bin-counts
+
+gg_data_heatmap <- ggplot(data, aes(study_hours_per_day, exam_score)) + 
+  geom_bin2d() +
+  scale_fill_gradient(low = "lightblue", high = "red") +
+  theme_minimal()
+gg_data_heatmap
+
+```
+
+## 2.5 Create two distinct plots that exhibit trends in data using different smoothing interpolation. Highlight their relative strengths and weakness.
+
+### 2.5.1 Default Smoothing using Loess method
+
+It is advantageous as it automatically chooses a reasonable smoothing pattern which shows a good smoothing. However it can be unpredictable at times because we are not aware of which method it uses and the line can be skewed by outliers based on the plot.
+
+```{r}
+#| label: loess-method
+
+gg_data_smooth <- gg_data_jitter +
+  geom_smooth(method = "loess") +
+  labs(title = "Default Smoothing")
+gg_data_smooth
+```
+
+### 2.5.2 Wiggle Smoothing
+
+It is advantageous when it comes to handling data that are nonlinear, however our current data shows a linear relationship hence the smoothing does not show its best potential. The disadvantage is that it is harder to interpret.
+
+```{r}
+#| label: wiggle-smoothing
+
+gg_data_wiggle <- gg_data_jitter +
+  geom_smooth(span = 0.2) +
+  labs(title = "Wiggle Smoothing")
+gg_data_wiggle
+```
+
+### 2.5.3 Linear Model
+
+It is advantageous as it is simple and easy to interpret and can clearly show trend lines. The disadvantage would be that it always assume that the data is a linear relationship, which can be a poor indication when given a non linear pattern.
+
+```{r}
+#| label: linear-model
+gg_data_linear <- gg_data_jitter +
+  geom_smooth(method = "lm")
+  labs(title = "Linear")
+gg_data_linear
+```
+
+## Reflections
+
+**1. Key takeaway**\
+One key takeaway from this lab was learning how to mitigate overplotting using techniques like jitter plots and bee-swarm plots. This stood out because it clearly showed how raw data can be misleading or hard to interpret when points overlap and how simple visualization tweaks can greatly improve clarity.
+
+**2. Challenges**\
+A challenge we encountered was understanding the correct parameters for jittering only in the y-direction without distorting the x-values. It took some experimentation with the width and height arguments to produce a visually informative plot that still preserved the structure of the data.
+
+**3. AI assistance**\
+We used AI tools like ChatGPT to clarify certain concepts (such as the difference between jitter and bee-swarm plots) and to help troubleshoot coding errors. The assistance helped us better understand the visualizations and complete the tasks more efficiently.
+
+**4. Teamwork**\
+Our team collaborated by discussing each part of the lab together and sharing ideas on how to approach the tasks. A strength was that everyone contributed to the discussion and problem-solving. One area we could improve is organizing our work more clearly from the start to avoid overlapping efforts.
