@@ -1,6 +1,7 @@
 ---
-title: "Week2Assignment"
-author: "Team Sienna"
+title: "Sienna_P2_Week2Lab"
+author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
+date: "13 May 2025"
 format: html
 editor: visual
 ---
