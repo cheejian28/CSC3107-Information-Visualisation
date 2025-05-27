@@ -6,6 +6,8 @@ format: html
 editor: visual
 ---
 
+# Question 1 Visualising the Distribution of Travelers on the Titanic
+
 ### Inputting Packages
 
 ```{r}
@@ -18,6 +20,8 @@ library(ggmosaic)
 ```
 
 ### Visualizing the Distribution of Travelers on the Titanic
+
+The spreadsheet is available at [titanic.csv](https://github.com/mgastner/public-data-sets/blob/main/titanic.csv), and it contains information about the passengers and crew aboard the Titanic during its maiden voyage in 1912, which tragically ended when the ship hit an iceberg and sank. This spreadsheet is based on data available from the Encyclopedia Titanica ([Hind, 2023](https://xsite.singaporetech.edu.sg/content/enforced/167271-SIT-2430-CSC3107/week_4_geoms_and_aesthetic_mappings/week_4_geoms_and_aesthetic_mappings/week_4_exploring_aesthetic_mappings.html#ref-hind_encyclopedia_2023))
 
 ```{r}
 #| label: read_data
@@ -39,7 +43,9 @@ traveler_counts <- df |>
 print(traveler_counts)
 ```
 
-#### Bar Chart of Travelers by Class
+#### 1.1 Bar Chart of Travelers by Class
+
+Create a bar chart displaying the number of travelers by class (1st, 2nd, 3rd, and crew). Include a plot title and a caption attributing the source as “Encyclopedia Titanica (2023).”
 
 ```{r}
 #| label: plot_bar
@@ -62,7 +68,9 @@ ggplot(traveler_counts, aes(x = class, y = n)) +
 
 ```
 
-#### Dodged Bar Chart of Travelers by Class and Survival
+#### 1.2 Dodged Bar Chart of Travelers by Class and Survival
+
+Use a dodged bar chart to visualize the dependence of the survival rate on the class in which a person traveled.
 
 ```{r}
 #| label: plot_dodged_bar
@@ -92,7 +100,9 @@ ggplot(df, aes(x = class, fill = survived)) +
 
 ```
 
-#### Mosaic Plot
+#### 1.3 Mosaic Plot
+
+When working with two categorical variables, such as class and survival, mosaic plots provide an alternative to segmented bar charts. Use the `geom_mosaic()` function from the ggmosaic package to create a mosaic plot of the data in `titanic.`
 
 ```{r}
 #| label: plot_mosaic
@@ -134,7 +144,7 @@ p + geom_text(
 
 ```
 
-#### Pros and Cons of Mosaic Plots
+#### 1.4 Pros and Cons of Mosaic Plots
 
 **Advantage of using the mosaic plot (Figure 3):**\
 - The mosaic plot provides a clear visualization of the proportionate relationships between multiple categorical variables simultaneously. It allows for an intuitive understanding of the joint distribution and interactions among variables (e.g., survival status, class, and gender) in a single plot, showing relative frequencies through area size.
@@ -142,7 +152,9 @@ p + geom_text(
 **Disadvantage of using the mosaic plot (Figure 3):**\
 - The mosaic plot can be more difficult to interpret quantitatively compared to the dodged bar chart, especially for viewers unfamiliar with this type of visualization. It may be harder to accurately compare specific category counts or proportions because the area sizes can be less straightforward to judge than the lengths of bars in a dodged bar chart.
 
-#### Alternate Visualization
+#### 1.5 Alternate Visualization
+
+Using `ggplot2` (and any necessary add-on packages), create an alternative visualization to bar and mosaic plot that illustrates the same bivariate relationship between class and survival. Then, discuss the **advantages** and **limitations** of your chosen visualization.
 
 ```{r}
 #| label: prepare-alternative-data
@@ -194,11 +206,120 @@ Loss of Absolute Counts: The primary limitation is that it obscures absolute num
 Comparison within Segments: Comparing the absolute size of a specific segment (e.g., non-survivors) across classes can be difficult if the total numbers per class vary greatly, as the bars are all normalized to the same height.
 
 ```{r}
+#| label: heatmap-survival-class
+#| fig-cap: "Heatmap of Passenger Counts by Class and Survival. This plot shows the number of travelers in each class-survival combination using color intensity."
+#| fig-alt: "A heatmap with class on the y-axis and survival status on the x-axis. Each tile's color represents the number of passengers. Darker blue indicates more passengers."
 
+# Count number of people by class and survival
+survival_counts <- df %>%
+  count(class, survived)
+
+# Plot heatmap
+ggplot(survival_counts, aes(x = survived, y = class, fill = n)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = n), color = "black", size = 4) +
+  scale_fill_gradient(low = "lightblue", high = "steelblue") +
+  labs(
+    title = "Titanic Travelers by Class and Survival",
+    x = "Survived",
+    y = "Class",
+    fill = "Count",
+    caption = "Source: Encyclopedia Titanica (2023)"
+
+  ) +
+  theme_minimal()
 
 ```
+
+#### ✅ Advantages of the Stacked Bar Chart
+
+Emphasizes raw counts clearly using both numbers and color shading.
+
+Easy to compare values across the grid, especially for spotting which class had the most or fewest survivors or non-survivors.
+
+Very compact and clean layout for summarizing categorical intersections.
+
+#### ⚠️ Limitations
+
+Does not directly communicate proportions (e.g., survival rate within a class).
+
+Relies on color interpretation, which can be less intuitive for comparing subtle differences than bar lengths.
+
+Less familiar to some audiences compared to bar charts.
+
+# Question 2 Find a Data Set to Demonstrate Semantically Correct Aesthetic Mappings
+
+#### 2.1 Objective
+
+Find a real-world data set and construct a single plot that exhibits **at least 2 out of 3** of the following aesthetic mappings. The visualization must include **both x and y coordinates**, and the aesthetic mappings should be semantically appropriate for the variable’s type:
+
+1.  Color (via `color` or `fill`)
+2.  Size or line width
+3.  Shape or line type
+
+#### 2.2 Data Requirements
+
+-   **Novelty**: You may **not** recycle any data source previously used in this course.
+-   **Accessibility**: The data must be publicly available online in CSV or Excel format (e.g. a government portal scientific journal).
+-   **Provenance**: Provide the URL where you obtained the file, and include the raw data file with your submission.
+
+#### 2.3 Tasks
+
+1.  Data URL: [virginia dataset](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/VADeaths.html)
+2.  The VADeaths dataset is a built in data set in R that contains the mortality data from the state of Virgin in 1940. The data set includes death rates per 1000 population across different age groups and demographic. The variables of the data set are
+    1.  Age group
+    2.  Demographic
+    3.  Death Rates
+3.  Use ggplot2 (and any necessary add-on package) to produce a single plot incorporating at least two out of three aesthetic mapping categories
 
 ```{r}
+#| label: death-rate-virginia
+#| fig-cap: "Death rates in Virginia (1940) across different age groups and demographic categories. The data shows mortality rates per 1,000 population, with solid lines representing male groups and dashed lines representing female groups. "
 
+# VADeaths is a built-in dataset in R
+data("VADeaths")
 
+# Convert the dataset to a format suitable for ggplot2
+df <- as.data.frame(VADeaths)
+df$age <- rownames(df)
+
+# Reshape the data from wide to long format
+library(tidyr)
+df_long <- pivot_longer(df, cols = -age, 
+                       names_to = "demographic", 
+                       values_to = "death_rate")
+
+# Create a line chart
+ggplot(df_long, aes(x = age, y = death_rate, color = demographic, 
+                    group = demographic, 
+                    linetype = ifelse(grepl("Female", demographic), "dashed", "solid"))) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  scale_linetype_identity() +  # Use the actual values "dotted" and "solid"
+  theme_minimal() +
+  labs(title = "Death Rates in Virginia (1940)",
+       x = "Age Group",
+       y = "Deaths per 1,000 Population",
+       color = "Demographic Group")
 ```
+
+4.  Gender is mapped to line type to add a redundant encoding that reinforces categorical distinction. The demographic variable is mapped to color because it is a categorical variable with distinct groups that need to be differentiated.
+5.  This visualisation reveals that in 1940 Virginia, death rates increased with age across all groups, with rural males consistently experiencing highest mortality and urban female being the lowest. This pattern demonstrate that both gender and geographic location could significantly influence mortality outcome with the disparity between widening of older age group brackets.
+
+# 3 Reflections
+
+**1. Key Takeaway**
+
+One key takeaway from this lab was learning how to use aesthetic mappings in ggplot2 to represent different types of variables more effectively. This stood out because we realized how thoughtful visual design such as mapping survival to color or class to shape which can make patterns much easier to interpret at a glance.
+
+**2. Challenges**
+
+We found it a bit challenging to get the mosaic plot working correctly using the ggmosaic package mainly trying figuring out how to format the syntax for geom_mosaic(). It took several attempts and checking documentation before the plot displayed as expected.
+
+**3. AI Assistance**
+
+We used ChatGPT to help interpret the lab instructions and clarify how to use\` geom_mosaic()\` correctly. It also helped us understand when to use fill vs. color for different variable types in ggplot2.
+
+**4. Teamwork**
+
+Our team collaborated by dividing the lab into sections—one person focused on the Titanic visualizations, while the other researched the dataset for Section 2. A strength was our clear communication and time management. One area for improvement would be to test each other’s code more thoroughly to ensure consistency before merging.
