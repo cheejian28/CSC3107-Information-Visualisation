@@ -231,8 +231,7 @@ ggplot(survival_counts, aes(x = survived, y = class, fill = n)) +
 
 ```
 
-#### ✅ Advantages of the Stacked Bar Chart
-
+#### ✅ Advantages of  heatmap 
 Emphasizes raw counts clearly using both numbers and color shading.
 
 Easy to compare values across the grid, especially for spotting which class had the most or fewest survivors or non-survivors.
