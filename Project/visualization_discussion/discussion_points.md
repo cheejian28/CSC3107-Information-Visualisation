@@ -22,6 +22,8 @@
   - 5.0°C or above
 - **Visual Encoding**: One red square = one scientist's answer.
 
+- The visual shows the distribution of expert opinions on expected global temperature rise from a survey of 380 climate scientists
+
 ---
 
 ## 2. 🎯 What does the visualization aim to communicate?
