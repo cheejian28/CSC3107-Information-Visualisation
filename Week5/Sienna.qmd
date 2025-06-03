@@ -1,0 +1,117 @@
+---
+title: "Sienna_P2_Week3Lab"
+author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
+date: "3 June 2025"
+format: html
+editor: visual
+knitr:
+  opts_chunk:
+    fig.width: 7.5
+    fig.height: 5
+    fig.align: center
+---
+
+# Exercise: Preston Curve
+
+```{r}
+#| label: required-packages
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(countrycode)
+```
+
+# 2. Preparing data
+
+## 2.1 Data import
+
+```{r}
+#| label: import-data
+#| message: false
+
+gdp <- read_excel("API_NY.GDP.PCAP.CD_DS2_en_excel_v2_85284.xls", sheet = "Data", skip = 3)
+life_exp <- read_excel("API_SP.DYN.LE00.IN_DS2_en_excel_v2_85119.xls", sheet = "Data", skip = 3)
+popu <- read_excel("API_SP.POP.TOTL_DS2_en_excel_v2_85347.xls", sheet = "Data", skip = 3)
+```
+
+## 2.2 Column Selection
+
+```{r}
+#| label: column-selection
+#| message: false
+
+gdp <- gdp %>% select(country = "Country Name", code="Country Code", gdp_per_cap = "2019")
+life_exp <- life_exp %>% select(country ="Country Name", code="Country Code", life_expect = "2019")
+popu <- popu %>% select(country ="Country Name", code="Country Code", population = "2019")
+```
+
+## 2.3 Merge Data
+
+```{r}
+#| label: merge-data
+#| message: false
+
+countries <- gdp %>%
+  left_join(life_exp %>% select(country, life_expect), by = "country") %>%
+  left_join(popu %>% select(country, population), by = "country")
+```
+
+## 2.4 Identifying non-countries rows
+
+```{r}
+#| label: identify-non-countries
+#| message: false
+countries <- countries %>%
+  mutate(
+    code_2 = countrycode(code, origin = "wb", destination = "wb", warn = FALSE)
+  )
+```
+
+## 2.5 Append Continent Column
+
+```{r}
+#| label: append-continent
+#| message: false
+countries <- countries %>%
+  mutate(
+    continent = countrycode(code, origin = "wb", destination = "continent", warn = FALSE)
+  )
+```
+
+## 2.6 Remove Missing Data
+
+```{r}
+#| label: remove-missing-data
+#| message: false
+countries <- countries %>% drop_na()
+```
+
+## 2.7 Count Countries
+
+```{r}
+#| label: count-contries
+#| message: false
+nrow(countries)
+```
+
+## 2.8 Prepare Country Labels
+
+```{r}
+#| label: prepare-country-labels
+#| message: false
+
+top10_gdp <- countries %>% arrange(desc(gdp_per_cap)) %>% slice_head(n = 10) %>% pull(code)
+bottom10_gdp <- countries %>% arrange(gdp_per_cap) %>% slice_head(n = 10) %>% pull(code)
+top10_life <- countries %>% arrange(desc(life_expect)) %>% slice_head(n = 10) %>% pull(code)
+bottom10_life <- countries %>% arrange(life_expect) %>% slice_head(n = 10) %>% pull(code)
+top10_pop <- countries %>% arrange(desc(population)) %>% slice_head(n = 10) %>% pull(code)
+
+# Combine all unique codes
+label_codes <- unique(c(top10_gdp, bottom10_gdp, top10_life, bottom10_life, top10_pop))
+
+# Add the label column
+countries <- countries %>%
+  mutate(label = if_else(code %in% label_codes, code, ""))
+countries
+```
