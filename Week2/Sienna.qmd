@@ -3,7 +3,6 @@ title: "Sienna_P2_Week2Lab"
 author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
 date: "13 May 2025"
 format: html
-editor: visual
 ---
 
 # Question 1 Country-Level Statistics from World Bank
@@ -50,7 +49,7 @@ population
 Combining data frames using left join.
 
 ```{r}
-#| label: combine_data
+#| label: combine_datax 
 combined_df <- gdp %>%
   left_join(life_expectancy, by = c("Country Name", "Country Code")) %>%
   left_join(population, by = c("Country Name", "Country Code"))
