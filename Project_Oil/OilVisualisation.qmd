@@ -1,0 +1,33 @@
+---
+title: "OilVisualisation"
+author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
+format: html
+editor: visual
+---
+
+## Load Required Libraries
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(readxl)
+```
+
+## Load Data
+
+```{r}
+df <- read_excel("Statistical_Review_of_World_Energy_Data.xlsx", 
+                 sheet = "Oil Production - barrels",
+                 skip = 2) %>%
+  select("Country/Region" = 1, Production_2022 = `2022`)
+```
+
+## Data Cleaning
+
+```{r}
+df <- df %>%drop_na() %>%
+  mutate(across(1, ~ifelse(str_detect(., "of which: OECD"), "OECD", .)))
+df
+```
+
+## Visualisation
