@@ -11,6 +11,16 @@ editor: visual
 # Load required libraries
 library(tidyverse)
 library(readxl)
+
+# For visualisation
+library(ggplot2)
+library(sf)
+library(cartogram)
+library(rnaturalearth)
+library(dplyr)
+library(countrycode)
+library(viridis)
+library(ggrepel)
 ```
 
 ## Load Data
@@ -30,4 +40,78 @@ df <- df %>%drop_na() %>%
 df
 ```
 
+```{r}
+df_clean <- df %>%
+  filter(!str_detect(`Country/Region`, "^Total|^Other|^Non|^OPEC|^OECD|European Union|World|USSR")) %>%
+  mutate(iso_a3 = countrycode(`Country/Region`, "country.name", "iso3c"))
+df_clean
+```
+
 ## Visualisation
+
+```{r}
+# Loading a base world map
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
+# Merging the world map with the oil production data
+world_data <- left_join(world, df_clean, by = c("iso_a3" = "iso_a3"))
+
+# Transform to a projected coordinate reference system (CRS). In this case, we use the Mercator projection.
+world_data_proj <- st_transform(world_data, crs = 3857) %>%
+  filter(!is.na(Production_2022))
+
+# Create continuous area cartogram weighted by Production_2022
+carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 5)
+
+# Calculate centroids for label placement and area for font sizing
+centroids <- suppressWarnings(
+  carto %>%
+  st_centroid() %>%
+  mutate(
+    visible_area = st_area(geometry) %>% as.numeric(),
+    font_size = scales::rescale(visible_area, to = c(1.5, 4))  # adjust scale as needed
+  )
+)
+
+# Extract coordinates from centroids 
+centroids_coords <- centroids %>%
+  mutate(
+    x = st_coordinates(geometry)[,1],
+    y = st_coordinates(geometry)[,2]
+  )
+
+# Show the top 15 countries by oil production for labeling
+top_labels <- centroids_coords %>%
+  mutate(`Country/Region` = ifelse(`Country/Region` == "Russian Federation", "Russia", `Country/Region`)) %>% 
+  slice_max(order_by = Production_2022, n = 15)
+
+ggplot(carto) +
+  geom_sf(aes(fill = Production_2022), color = "black", linewidth = 0.1) +
+  geom_text_repel(
+    data = top_labels,
+    aes(x = x, y = y, label = `Country/Region`, size = font_size),
+    color = "black",
+    segment.color = "gray30",
+    bg.color = "white", 
+    bg.r = 0.15,
+    box.padding = 0.3,
+    point.padding = 0.2,
+    min.segment.length = 0,
+    max.overlaps = 15,
+    segment.size = 0.75
+  ) +
+  scale_size_identity() +
+  scale_fill_viridis_c(
+    option = "A", 
+    trans = "log", 
+    name = "Production (barrels)"
+  ) +
+  theme_minimal(base_family = "sans") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#f8f9fa"),
+    plot.background = element_rect(fill = "#f8f9fa")
+  ) +
+  labs(title = "Oil Production Cartogram (2022)")
+```
