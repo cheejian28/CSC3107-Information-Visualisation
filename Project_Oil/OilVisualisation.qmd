@@ -13,6 +13,7 @@ library(tidyverse)
 library(readxl)
 
 # For visualisation
+library(grid)  # Needed for arrow()
 library(ggplot2)
 library(sf)
 library(cartogram)
@@ -50,6 +51,7 @@ df_clean
 ## Visualisation
 
 This is Visualization 1 which incorporates a cartogram with legend on the right side
+
 ```{r}
 # Loading a base world map
 world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
@@ -62,7 +64,7 @@ world_data_proj <- st_transform(world_data, crs = 3857) %>%
   filter(!is.na(Production_2022))
 
 # Create continuous area cartogram weighted by Production_2022
-carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 5)
+carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 2)
 
 # Calculate centroids for label placement and area for font sizing
 centroids <- suppressWarnings(
@@ -70,7 +72,7 @@ centroids <- suppressWarnings(
   st_centroid() %>%
   mutate(
     visible_area = st_area(geometry) %>% as.numeric(),
-    font_size = scales::rescale(visible_area, to = c(1.5, 4))  # adjust scale as needed
+    font_size = scales::rescale(visible_area, to = c(2.5, 4))  # adjust scale as needed
   )
 )
 
@@ -93,13 +95,18 @@ ggplot(carto) +
     aes(x = x, y = y, label = `Country/Region`, size = font_size),
     color = "black",
     segment.color = "black",
-    bg.color = "white", 
-    bg.r = 0.15,
-    box.padding = 0.3,
-    point.padding = 0.2,
-    min.segment.length = 0,
+    segment.size = 0.9,
+    segment.alpha = 0.8,
+    segment.curvature = 0.1,
+    segment.angle = 20,     
+    arrow = arrow(length = unit(0.15, "cm"), type = "closed"),
+    force = 1.5,
+    box.padding = 0.6,
+    point.padding = 0.4,
+    min.segment.length = unit(0.2, "lines"),  # <- avoid near-zero segments
     max.overlaps = 15,
-    segment.size = 0.75
+    bg.color = "white", 
+    bg.r = 0.15
   ) +
   scale_size_identity() +
   scale_fill_gradient(
@@ -131,6 +138,7 @@ ggplot(carto) +
 ```
 
 This is Visualization 2 which incorporates a cartogram with legend on the bottom
+
 ```{r}
 # Loading a base world map
 world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
@@ -174,13 +182,18 @@ ggplot(carto) +
     aes(x = x, y = y, label = `Country/Region`, size = font_size),
     color = "black",
     segment.color = "black",
-    bg.color = "white", 
-    bg.r = 0.15,
-    box.padding = 0.3,
-    point.padding = 0.2,
-    min.segment.length = 0,
+    segment.alpha = 0.8,
+    segment.curvature = 0.1,
+    segment.angle = 20,
+    arrow = arrow(length = unit(0.15, "cm"), type = "closed"),
+    force = 2,                              # Push labels away further
+    box.padding = 0.6,
+    point.padding = 0.4,
+    min.segment.length = unit(0.2, "lines"),  # Prevent zero-length segments
     max.overlaps = 15,
-    segment.size = 0.75
+    segment.size = 0.75,
+    bg.color = "white", 
+    bg.r = 0.15
   ) +
   scale_size_identity() +
   scale_fill_gradient(
