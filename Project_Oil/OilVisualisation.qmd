@@ -44,7 +44,38 @@ df
 ```{r}
 df_clean <- df %>%
   filter(!str_detect(`Country/Region`, "^Total|^Other|^Non|^OPEC|^OECD|European Union|World|USSR")) %>%
-  mutate(iso_a3 = countrycode(`Country/Region`, "country.name", "iso3c"))
+  mutate(
+    iso_a3 = countrycode(`Country/Region`, "country.name", "iso3c"),
+    continent = case_when(
+      iso_a3 %in% c("USA", "CAN", "MEX") ~ "North America",
+      iso_a3 %in% c("ARG", "BRA", "COL", "ECU", "GUY", "PER", "TTO", "VEN") ~ "South America",
+      iso_a3 %in% c("GBR", "NOR", "DNK", "ITA", "ROU") ~ "Europe",
+      iso_a3 %in% c("RUS", "KAZ", "AZE", "TKM", "UZB") ~ "Asia",
+      TRUE ~ countrycode(iso_a3, "iso3c", "continent")
+    ),
+    region = case_when(
+      # North America
+      iso_a3 %in% c("USA", "CAN", "MEX") ~ "North America",
+      
+      # South & Central America  
+      iso_a3 %in% c("ARG", "BRA", "COL", "ECU", "GUY", "PER", "TTO", "VEN") ~ "South & Central America",
+      
+      # Europe
+      iso_a3 %in% c("DNK", "ITA", "NOR", "ROU", "GBR") ~ "Europe",
+      
+      # CIS (Commonwealth of Independent States)
+      iso_a3 %in% c("AZE", "KAZ", "RUS", "TKM", "UZB") ~ "CIS",
+      
+      # Middle East
+      iso_a3 %in% c("IRN", "IRQ", "KWT", "OMN", "QAT", "SAU", "SYR", "ARE", "YEM") ~ "Middle East",
+      
+      # Africa
+      iso_a3 %in% c("DZA", "AGO", "TCD", "COG") ~ "Africa",
+      
+      # For any other countries, use continent as fallback
+      TRUE ~ continent
+    )
+  )
 df_clean
 ```
 
