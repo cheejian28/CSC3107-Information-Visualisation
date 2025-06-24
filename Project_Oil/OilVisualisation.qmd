@@ -81,175 +81,101 @@ df_clean
 
 ## Visualisation
 
-This is Visualization 1 which incorporates a cartogram with legend on the right side
+This visualization presents a cartogram where countries are resized based on their oil production in 2022, color-coded by region, and annotated with the top two oil-producing countries in each region.
 
 ```{r}
-# Loading a base world map
+# Load the base world map
 world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
 
-# Merging the world map with the oil production data
+# Merge with oil production data
 world_data <- left_join(world, df_clean, by = c("iso_a3" = "iso_a3"))
 
-# Transform to a projected coordinate reference system (CRS). In this case, we use the Mercator projection.
-world_data_proj <- st_transform(world_data, crs = 3857) %>% 
-  filter(!is.na(Production_2022))
+# Project the map
+world_data_proj <- st_transform(world_data, crs = 3857) %>%
+  filter(!is.na(Production_2022), !is.na(region))
 
-# Create continuous area cartogram weighted by Production_2022
-carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 2)
+# Create the cartogram distorted by Production_2022
+carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 8)
 
-# Calculate centroids for label placement and area for font sizing
-centroids <- suppressWarnings(
-  carto %>%
-  st_centroid() %>%
-  mutate(
-    visible_area = st_area(geometry) %>% as.numeric(),
-    font_size = scales::rescale(visible_area, to = c(2.5, 4))  # adjust scale as needed
-  )
+# Define a manual color palette for regions
+region_colors <- c(
+  "North America" = "#1f77b4",
+  "South & Central America" = "#ff7f0e",
+  "Europe" = "#2ca02c",
+  "CIS" = "#d62728",
+  "Middle East" = "#9467bd",
+  "Africa" = "#8c564b",
+  "Asia" = "#e377c2",
+  "Oceania" = "#7f7f7f"
 )
 
-# Extract coordinates from centroids 
-centroids_coords <- centroids %>%
+# Prepare centroids of countries in cartogram for label placement
+country_centroids <- suppressWarnings(
+  carto %>%
+    st_centroid() %>%
+    mutate(
+      x = st_coordinates(geometry)[,1],
+      y = st_coordinates(geometry)[,2]
+    )
+)
+
+# Select top 5 countries by Production_2022 per region
+top5_labels <- country_centroids %>%
+  group_by(region) %>%
+  slice_max(order_by = Production_2022, n = 3) %>%
+  ungroup() %>%
   mutate(
-    x = st_coordinates(geometry)[,1],
-    y = st_coordinates(geometry)[,2]
+    country_display = ifelse(`Country/Region` == "Russian Federation", "Russia", `Country/Region`),
+    label = paste0(country_display, "\n", format(round(Production_2022, 0), big.mark = ","))
   )
 
-# Show the top 15 countries by oil production for labeling
-top_labels <- centroids_coords %>%
-  mutate(`Country/Region` = ifelse(`Country/Region` == "Russian Federation", "Russia", `Country/Region`)) %>% 
-  slice_max(order_by = Production_2022, n = 15)
-
+# Plot
 ggplot(carto) +
-  geom_sf(aes(fill = Production_2022), color = "black", linewidth = 0.1) +
+  geom_sf(aes(fill = region), color = "black", linewidth = 0.1) +
   geom_text_repel(
-    data = top_labels,
-    aes(x = x, y = y, label = `Country/Region`, size = font_size),
+    data = top5_labels,
+    aes(x = x, y = y, label = label),
     color = "black",
+    size = 4,
     segment.color = "black",
-    segment.size = 0.9,
-    segment.alpha = 0.8,
+    segment.size = 0.8,
+    segment.alpha = 0.9,
     segment.curvature = 0.1,
-    segment.angle = 20,     
     arrow = arrow(length = unit(0.15, "cm"), type = "closed"),
-    force = 1.5,
-    box.padding = 0.6,
-    point.padding = 0.4,
-    min.segment.length = unit(0.2, "lines"),  # <- avoid near-zero segments
-    max.overlaps = 15,
-    bg.color = "white", 
+    box.padding = 0.5,
+    point.padding = 0.3,
+    force = 3,  # stronger repulsion
+    force_pull = 0.4,
+    max.iter = 5000,
+    min.segment.length = unit(0.3, "lines"),  # force visible arrows
+    max.overlaps = Inf,
+    bg.color = "white",
     bg.r = 0.15
   ) +
-  scale_size_identity() +
-  scale_fill_gradient(
-    low = "#deebf7", 
-    high = "#08519c",
-    name = "Production (barrels)",
-    labels = scales::comma
+  scale_fill_manual(
+    values = region_colors,
+    name = "Region"
   ) +
-  guides(fill = guide_colorbar(
-    barwidth = 0.3,   # Slim colorbar
-    barheight = 6     # Taller bar to preserve readability
+  guides(fill = guide_legend(
+    override.aes = list(color = "black"),
+    title.position = "top",
+    title.hjust = 0.5
   )) +
   theme_minimal(base_family = "sans") +
   theme(
-    plot.title = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 15, face = "bold"),
     panel.grid = element_blank(),
     panel.background = element_rect(fill = "#f8f9fa"),
     plot.background = element_rect(fill = "#f8f9fa"),
-
-    # Legend layout on the right but compact
     legend.position = "right",
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
     legend.key.size = unit(0.3, "cm"),
     legend.spacing = unit(0.2, "cm"),
     legend.box.margin = margin(0, 2, 0, 2)
   ) +
-  labs(title = "Global Daily Oil Production Cartogram (2022)")
-```
-
-This is Visualization 2 which incorporates a cartogram with legend on the bottom
-
-```{r}
-# Loading a base world map
-world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
-
-# Merging the world map with the oil production data
-world_data <- left_join(world, df_clean, by = c("iso_a3" = "iso_a3"))
-
-# Transform to a projected coordinate reference system (CRS). In this case, we use the Mercator projection.
-world_data_proj <- st_transform(world_data, crs = 3857) %>% 
-  filter(!is.na(Production_2022))
-
-# Create continuous area cartogram weighted by Production_2022
-carto <- cartogram_cont(world_data_proj, weight = "Production_2022", itermax = 5)
-
-# Calculate centroids for label placement and area for font sizing
-centroids <- suppressWarnings(
-  carto %>%
-  st_centroid() %>%
-  mutate(
-    visible_area = st_area(geometry) %>% as.numeric(),
-    font_size = scales::rescale(visible_area, to = c(1.5, 4))  # adjust scale as needed
+  labs(
+    title = "Region of Oil Production Daily per Thousand Barrels (2022)", 
+    caption = "Source: BP Statistical Review of World Energy 2022"
   )
-)
-
-# Extract coordinates from centroids 
-centroids_coords <- centroids %>%
-  mutate(
-    x = st_coordinates(geometry)[,1],
-    y = st_coordinates(geometry)[,2]
-  )
-
-# Show the top 15 countries by oil production for labeling
-top_labels <- centroids_coords %>%
-  mutate(`Country/Region` = ifelse(`Country/Region` == "Russian Federation", "Russia", `Country/Region`)) %>% 
-  slice_max(order_by = Production_2022, n = 15)
-
-ggplot(carto) +
-  geom_sf(aes(fill = Production_2022), color = "black", linewidth = 0.1) +
-  geom_text_repel(
-    data = top_labels,
-    aes(x = x, y = y, label = `Country/Region`, size = font_size),
-    color = "black",
-    segment.color = "black",
-    segment.alpha = 0.8,
-    segment.curvature = 0.1,
-    segment.angle = 20,
-    arrow = arrow(length = unit(0.15, "cm"), type = "closed"),
-    force = 2,                              # Push labels away further
-    box.padding = 0.6,
-    point.padding = 0.4,
-    min.segment.length = unit(0.2, "lines"),  # Prevent zero-length segments
-    max.overlaps = 15,
-    segment.size = 0.75,
-    bg.color = "white", 
-    bg.r = 0.15
-  ) +
-  scale_size_identity() +
-  scale_fill_gradient(
-    low = "#deebf7", 
-    high = "#08519c",
-    name = "Production (barrels)",
-    labels = scales::comma
-  ) +
-guides(fill = guide_colorbar(
-  title.position = "top",
-  barwidth = unit(20, "lines"),  # wider
-  barheight = unit(0.5, "lines"), # flatter
-  title.hjust = 0.5
-)) +
-theme_minimal(base_family = "sans") +
-theme(
-  plot.title = element_text(size = 14, face = "bold"),
-  panel.grid = element_blank(),
-  panel.background = element_rect(fill = "#f8f9fa"),
-  plot.background = element_rect(fill = "#f8f9fa"),
-  legend.title = element_text(size = 10),
-  legend.text = element_text(size = 9),
-  legend.key.size = unit(0.3, "cm"),
-  legend.position = "bottom",
-  plot.margin = margin(20, 30, 20, 30)
-) +
-  labs(title = "Global Daily Oil Production Cartogram (2022)")
 ```
