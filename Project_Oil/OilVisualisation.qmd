@@ -8,6 +8,7 @@ editor: visual
 ## Load Required Libraries
 
 ```{r}
+#| label: libraries
 # Load required libraries
 library(tidyverse)
 library(readxl)
@@ -27,6 +28,7 @@ library(ggrepel)
 ## Load Data
 
 ```{r}
+#| label: load-data
 df <- read_excel("Statistical_Review_of_World_Energy_Data.xlsx", 
                  sheet = "Oil Production - barrels",
                  skip = 2) %>%
@@ -36,12 +38,14 @@ df <- read_excel("Statistical_Review_of_World_Energy_Data.xlsx",
 ## Data Cleaning
 
 ```{r}
+#| label: clean-data
 df <- df %>%drop_na() %>%
   mutate(across(1, ~ifelse(str_detect(., "of which: OECD"), "OECD", .)))
 df
 ```
 
 ```{r}
+#| label: prep-country-regions
 df_clean <- df %>%
   filter(!str_detect(`Country/Region`, "^Total|^Other|^Non|^OPEC|^OECD|European Union|World|USSR")) %>%
   mutate(
@@ -79,11 +83,12 @@ df_clean <- df %>%
 df_clean
 ```
 
-## Visualisation
+## Visualisation 1
 
 This visualization presents a cartogram where countries are resized based on their oil production in 2022, color-coded by region, and annotated with the top two oil-producing countries in each region.
 
 ```{r}
+#| label: cartogram-visualisation
 # Load the base world map
 world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
 
@@ -176,6 +181,70 @@ ggplot(carto) +
   ) +
   labs(
     title = "Region of Oil Production Daily per Thousand Barrels (2022)", 
+    caption = "Source: BP Statistical Review of World Energy 2022"
+  )
+```
+
+## Visualisation 2
+
+```{r}
+ncarto <- cartogram_ncont(world_data_proj, weight = "Production_2022", 
+                         k = 0.5, # Scaling factor
+                         inplace = FALSE) # Allow separation of polygons
+
+ggplot() +
+  # First layer: Original world map as background outline
+  geom_sf(data = world_data_proj, fill = NA, color = "gray80", linewidth = 0.2, alpha = 0.4) +
+  # Second layer: Non-contiguous cartogram with region colors
+  geom_sf(data = ncarto, aes(fill = region), color = "black", linewidth = 0.1) +
+  # Label the countries
+  geom_text_repel(
+    data = top5_labels %>% 
+      # Recalculate centroids for the non-contiguous cartogram
+      mutate(
+        geometry = st_centroid(ncarto$geometry[match(iso_a3, ncarto$iso_a3)]),
+        x = st_coordinates(geometry)[,1],
+        y = st_coordinates(geometry)[,2]
+      ),
+    aes(x = x, y = y, label = label),
+    color = "black",
+    size = 3.5,
+    segment.color = "black",
+    segment.size = 0.7,
+    segment.alpha = 0.9,
+    box.padding = 0.4,
+    point.padding = 0.3,
+    force = 4,
+    max.iter = 5000,
+    max.overlaps = 30,
+    bg.color = "white",
+    bg.r = 0.15
+  ) +
+  scale_fill_manual(
+    values = region_colors,
+    name = "Region"
+  ) +
+  guides(fill = guide_legend(
+    override.aes = list(color = "black"),
+    title.position = "top",
+    title.hjust = 0.5
+  )) +
+  theme_minimal(base_family = "sans") +
+  theme(
+    plot.title = element_text(size = 15, face = "bold"),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#f8f9fa"),
+    plot.background = element_rect(fill = "#f8f9fa"),
+    legend.position = "right",
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.spacing = unit(0.2, "cm"),
+    legend.box.margin = margin(0, 2, 0, 2)
+  ) +
+  labs(
+    title = "Oil Production by Country (2022) - Non-Contiguous Cartogram",
+    subtitle = "Country sizes proportional to oil production (thousand barrels/day)",
     caption = "Source: BP Statistical Review of World Energy 2022"
   )
 ```
