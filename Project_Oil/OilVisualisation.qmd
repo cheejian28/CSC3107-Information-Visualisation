@@ -188,11 +188,7 @@ ggplot(carto) +
 ## Visualisation 2
 
 ```{r}
-ncarto <- cartogram_ncont(world_data_proj, weight = "Production_2022", 
-                         k = 0.5, # Scaling factor
-                         inplace = FALSE) # Allow separation of polygons
-
-ggplot() +
+oil_production_plot <- ggplot() +
   # First layer: Original world map as background outline
   geom_sf(data = world_data_proj, fill = NA, color = "gray80", linewidth = 0.2, alpha = 0.4) +
   # Second layer: Non-contiguous cartogram with region colors
@@ -208,15 +204,15 @@ ggplot() +
       ),
     aes(x = x, y = y, label = label),
     color = "black",
-    size = 3.5,
+    size = 4,
     segment.color = "black",
-    segment.size = 0.7,
+    segment.size = 0.8,
     segment.alpha = 0.9,
     box.padding = 0.4,
     point.padding = 0.3,
     force = 4,
     max.iter = 5000,
-    max.overlaps = 30,
+    max.overlaps = Inf,
     bg.color = "white",
     bg.r = 0.15
   ) +
@@ -227,24 +223,34 @@ ggplot() +
   guides(fill = guide_legend(
     override.aes = list(color = "black"),
     title.position = "top",
-    title.hjust = 0.5
+    title.hjust = 0.5,
+    nrow = 1
   )) +
   theme_minimal(base_family = "sans") +
   theme(
-    plot.title = element_text(size = 15, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold"),
     panel.grid = element_blank(),
     panel.background = element_rect(fill = "#f8f9fa"),
     plot.background = element_rect(fill = "#f8f9fa"),
-    legend.position = "right",
-    legend.title = element_text(size = 9),
-    legend.text = element_text(size = 8),
+    legend.position = "bottom",
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.key.size = unit(0.3, "cm"),
     legend.spacing = unit(0.2, "cm"),
-    legend.box.margin = margin(0, 2, 0, 2)
+    legend.box.margin = margin(5, 5, 5, 5),
+    # Reduce plot margins to maximize map size
+    plot.margin = margin(10, 20, 10, 10)
   ) +
+  # Adjust the coordinate ratio to expand the map
+  coord_sf(expand = FALSE) +
   labs(
-    title = "Oil Production by Country (2022) - Non-Contiguous Cartogram",
-    subtitle = "Country sizes proportional to oil production (thousand barrels/day)",
+    title = "Region of Oil Production Daily per Thousand Barrels (2022)",
     caption = "Source: BP Statistical Review of World Energy 2022"
   )
+
+# Display the plot
+oil_production_plot
+
+# Save the plot in png
+ggsave("oil_production_map.png", oil_production_plot, width = 12, height = 8, dpi = 300)
 ```
