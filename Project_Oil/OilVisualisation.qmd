@@ -187,8 +187,13 @@ ggplot(carto) +
 
 ## Visualisation 2
 
+This non-contiguous cartogram illustrates global oil production in 2022, where each country is represented as an independent, scaled shape according to its oil output. Countries are spatially separated to prevent distortion, maintaining relative production sizes while using color to distinguish regions. The top oil producers in each region are labeled for emphasis.
+
 ```{r}
 #| label: non-contiguous-cartogram-visualisation
+#| fig.width: 14
+#| fig.height: 9
+#| out.width: "100%"
 
 ncarto <- cartogram_ncont(world_data_proj, weight = "Production_2022", 
                          k = 0.5, # Scaling factor
