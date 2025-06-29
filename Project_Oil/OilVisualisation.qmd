@@ -188,6 +188,7 @@ ggplot(carto) +
 ## Visualisation 2
 
 ```{r}
+#| label: non-contiguous-cartogram-visualisation
 oil_production_plot <- ggplot() +
   # First layer: Original world map as background outline
   geom_sf(data = world_data_proj, fill = NA, color = "gray80", linewidth = 0.2, alpha = 0.4) +
