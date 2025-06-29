@@ -1,5 +1,5 @@
 ---
-title: "OilVisualisation"
+title: "Oil Visualisation"
 author: "Hew Zhong Xuan, Chuah Chee Jian, Lim Kuan Yong, Tan Ting Xuan Daryl, Kua Dong Han, Chek Yu Ting Amanda"
 format: html
 editor: visual
@@ -189,6 +189,10 @@ ggplot(carto) +
 
 ```{r}
 #| label: non-contiguous-cartogram-visualisation
+
+ncarto <- cartogram_ncont(world_data_proj, weight = "Production_2022", 
+                         k = 0.5, # Scaling factor
+                         inplace = FALSE) # Allow separation of polygons
 oil_production_plot <- ggplot() +
   # First layer: Original world map as background outline
   geom_sf(data = world_data_proj, fill = NA, color = "gray80", linewidth = 0.2, alpha = 0.4) +
